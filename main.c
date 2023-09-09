@@ -92,6 +92,12 @@ char* string_trim(char* input)
   {
     input = &input[i+1];
   }
+  i = strlen(input) - 1;
+  while (input[i] == ' ')
+  {
+    input[i] = '\0';
+    --i;
+  }
   return input;
 }
 
