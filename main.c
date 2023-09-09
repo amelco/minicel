@@ -8,6 +8,7 @@
 #include "globals.h"
 #include "mystr.h"
 #include "cell.h"
+#include "sheet.h"
 
 // Exemplo de uso
 // ./minicel in.csv > output.csv
@@ -21,7 +22,6 @@ void usage()
 char*
 read_content(const char* file_path, size_t* size)
 {
-  (void) size;
   char* buffer = NULL;
   
   FILE *f = fopen(file_path, "rb");  // abre arquivo em modo leitura de bytes
@@ -63,6 +63,7 @@ error:
   return NULL;
 }
 
+
 int main(int argc, char* argv[])
 {
   if (argc < 2)
@@ -82,13 +83,12 @@ int main(int argc, char* argv[])
     fprintf(stderr, "ERROR: could not open file '%s': %s\n", input_file_path, strerror(errno));
     exit(1);
   }
-
-  Cell* cells = malloc(sizeof(Cell) * NUM_MAX_CELLS);
+  
+  Sheet sheet;
+  sheet.cells = malloc(sizeof(Cell) * NUM_MAX_CELLS);
 
   int num_rows = 0;
   int num_cols = 0;
-  int max_rows = 0;
-  int max_cols = 0;
   char** rows = string_split(data, "\n", &num_rows);
   int k = 0;
   for (int i = 0; i < num_rows; ++i)
@@ -108,31 +108,31 @@ int main(int argc, char* argv[])
       cell.row = i;
       cell.data = value;
 
-      cells[k] = cell;
+      sheet.cells[k] = cell;
       
       k++;
-      if (num_cols > max_cols)
-        max_cols = num_cols;
+      if (num_cols > sheet.num_cols)
+        sheet.num_cols = num_cols;
     }
-    if (num_rows > max_rows)
-      max_rows = num_rows;
+    if (num_rows > sheet.num_rows)
+      sheet.num_rows = num_rows;
 
     free(cols);
   }
 
-  printf("Table size: %dx%d\n", max_rows, max_cols);
-  printf("Cell(3,2) = %s\n", get_cell_value(3, 2, cells, NUM_MAX_CELLS));
+  printf("Table size: %dx%d\n", sheet.num_rows, sheet.num_cols);
+  printf("Cell(3,2) = %s\n", get_cell_value(3, 2, sheet.cells, NUM_MAX_CELLS));
 
   for (int i = 0; i < k; ++i)
   {
-    printf("cell(%d, %d): %s => %d\n", cells[i].row, cells[i].col, cells[i].data, cells[i].type);
-    if (cells[i].type == CELLTYPE_EXPR)
+    printf("cell(%d, %d): %s => %d\n", sheet.cells[i].row, sheet.cells[i].col, sheet.cells[i].data, sheet.cells[i].type);
+    if (sheet.cells[i].type == CELLTYPE_EXPR)
     {
-      cells[i].evaluation = evaluate_expression(cells[i].data);
+      sheet.cells[i].evaluation = evaluate_expression(sheet.cells[i].data);
     }
   }
 
-  free(cells);
+  free(sheet.cells);
   free(rows);
   free(data);
 

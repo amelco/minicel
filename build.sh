@@ -2,4 +2,4 @@
 
 set -xe
 
-gcc -Wall -Wextra -ggdb --std=c11 globals.h mystr.h main.c -o minicel
+gcc -Wall -Wextra -ggdb --std=c11 sheet.h globals.h mystr.h main.c -o minicel
