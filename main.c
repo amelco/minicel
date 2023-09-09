@@ -5,11 +5,13 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "globals.h"
+#include "mystr.h"
+#include "cell.h"
+
 // Exemplo de uso
 // ./minicel in.csv > output.csv
 
-#define NUM_MAX_ITEMS 50
-#define NUM_MAX_CELLS 500
 
 void usage()
 {
@@ -59,83 +61,6 @@ error:
   if (buffer) 
     free(buffer);
   return NULL;
-}
-
-char**
-string_split(char* content, const char* sep, int* qtd)
-{
-  // inicialmente aloca 50 Strings
-  // TODO: realocar quando passar de 50
-  char** list = malloc(sizeof(char*) * NUM_MAX_ITEMS);
-
-  char* tmp = strtok(content, sep);
-  if (tmp == NULL)
-  {
-    return NULL;
-  }
-
-  size_t count = 0;
-  while (tmp != NULL)
-  {
-    list[count] = tmp;
-    tmp = strtok(NULL, sep);
-    count++;
-  }
-
-  if (qtd)
-    *qtd = count;
-
-  return list;
-}
-
-char* string_trim(char* input)
-{
-  int i=0;
-  while (input[i] == ' ')
-  {
-    input = &input[i+1];
-  }
-  i = strlen(input) - 1;
-  while (input[i] == ' ')
-  {
-    input[i] = '\0';
-    --i;
-  }
-  return input;
-}
-
-typedef enum
-{
-  CELLTYPE_TEXT,
-  CELLTYPE_NUM,
-  CELLTYPE_EXPR
-} CellType;
-
-typedef struct
-{
-  CellType type;
-  char* data;
-  int row;
-  int col;
-  int evaluation;
-} Cell;
-
-char*
-get_cell_value(int row, int col, Cell* cells, int size)
-{
-  for (int i=0; i<size; ++i)
-  {
-    if (cells[i].row == row && cells[i].col == col)
-      return cells[i].data;
-  }
-  return NULL;
-}
-
-int
-evaluate_expression(char* exp)
-{
-  printf("!! EVALUATE: %s !!\n", exp);
-  return 0;
 }
 
 int main(int argc, char* argv[])
