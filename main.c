@@ -8,6 +8,9 @@
 // Exemplo de uso
 // ./minicel in.csv > output.csv
 
+#define NUM_MAX_ITEMS 50
+#define NUM_MAX_CELLS 500
+
 void usage()
 {
   fprintf(stderr, "Usage: ./minicel <input.csv>\n");
@@ -63,7 +66,7 @@ string_split(char* content, const char* sep, int* qtd)
 {
   // inicialmente aloca 50 Strings
   // TODO: realocar quando passar de 50
-  char** list = malloc(sizeof(char*) * 50);
+  char** list = malloc(sizeof(char*) * NUM_MAX_ITEMS);
 
   char* tmp = strtok(content, sep);
   if (tmp == NULL)
@@ -114,7 +117,26 @@ typedef struct
   char* data;
   int row;
   int col;
+  int evaluation;
 } Cell;
+
+char*
+get_cell_value(int row, int col, Cell* cells, int size)
+{
+  for (int i=0; i<size; ++i)
+  {
+    if (cells[i].row == row && cells[i].col == col)
+      return cells[i].data;
+  }
+  return NULL;
+}
+
+int
+evaluate_expression(char* exp)
+{
+  printf("!! EVALUATE: %s !!\n", exp);
+  return 0;
+}
 
 int main(int argc, char* argv[])
 {
@@ -136,35 +158,57 @@ int main(int argc, char* argv[])
     exit(1);
   }
 
-  Cell* c = malloc(sizeof(Cell));
+  Cell* cells = malloc(sizeof(Cell) * NUM_MAX_CELLS);
 
-  int qtd;
-  char** rows = string_split(data, "\n", &qtd);
+  int num_rows = 0;
+  int num_cols = 0;
+  int max_rows = 0;
+  int max_cols = 0;
+  char** rows = string_split(data, "\n", &num_rows);
   int k = 0;
-  for (int i = 0; i < qtd; ++i)
+  for (int i = 0; i < num_rows; ++i)
   {
-    int num_rows = 0;
-    char** cols = string_split(rows[i], "|", &num_rows);
-    for (int j=0; j < num_rows; ++j)
+    char** cols = string_split(rows[i], "|", &num_cols);
+    for (int j=0; j < num_cols; ++j)
     {
       char* value = string_trim(cols[j]);
-      c->type = CELLTYPE_TEXT;
+      Cell cell;
 
-      if (value[0] == '=') c->type = CELLTYPE_EXPR;
+      cell.type = CELLTYPE_TEXT;
+      if (value[0] == '=') cell.type = CELLTYPE_EXPR;
       int value_num = strtol(value, NULL, 10);
-      if (value_num) c->type = CELLTYPE_NUM;
+      if (value_num) cell.type = CELLTYPE_NUM;
 
-      c->col = j;
-      c->row = i;
-      c->data = value;
+      cell.col = j;
+      cell.row = i;
+      cell.data = value;
+
+      cells[k] = cell;
       
       k++;
-      printf("cell(%d, %d): %s => %d\n", c->row, c->col, c->data, c->type);
+      if (num_cols > max_cols)
+        max_cols = num_cols;
     }
+    if (num_rows > max_rows)
+      max_rows = num_rows;
+
     free(cols);
   }
+
+  printf("Table size: %dx%d\n", max_rows, max_cols);
+  printf("Cell(3,2) = %s\n", get_cell_value(3, 2, cells, NUM_MAX_CELLS));
+
+  for (int i = 0; i < k; ++i)
+  {
+    printf("cell(%d, %d): %s => %d\n", cells[i].row, cells[i].col, cells[i].data, cells[i].type);
+    if (cells[i].type == CELLTYPE_EXPR)
+    {
+      cells[i].evaluation = evaluate_expression(cells[i].data);
+    }
+  }
+
+  free(cells);
   free(rows);
-  free(c);
   free(data);
 
   return 0;
