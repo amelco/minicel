@@ -141,12 +141,19 @@ int main(int argc, char* argv[])
     char** cols = string_split(rows[i], "|", &num_rows);
     for (int j=0; j < num_rows; ++j)
     {
+      char* value = string_trim(cols[j]);
       c->type = CELLTYPE_TEXT;
+
+      if (value[0] == '=') c->type = CELLTYPE_EXPR;
+      int value_num = strtol(value, NULL, 10);
+      if (value_num) c->type = CELLTYPE_NUM;
+
       c->col = j;
       c->row = i;
-      c->data = string_trim(cols[j]);
+      c->data = value;
+      
       k++;
-      printf("cell(%d, %d): %s\n", c->row, c->col, c->data);
+      printf("cell(%d, %d): %s => %d\n", c->row, c->col, c->data, c->type);
     }
     free(cols);
   }
